@@ -1,0 +1,15 @@
+{
+  "generated_from": "spec/",
+  "note": "Maps each requirement to its validators and downstream artifacts. Kept consistent with specs by scripts/check_traceability.py.",
+  "requirements": {
+    "REQ-014": {
+      "milestone": "m2",
+      "success_criteria": ["AC-1", "AC-2", "AC-3"],
+      "validators": [
+        { "type": "test", "ref": "tests/req_014_validation.test.js" },
+        { "type": "llm_judge", "ref": "REQ-014" }
+      ],
+      "downstream_artifacts": ["generated/create_user.js"]
+    }
+  }
+}

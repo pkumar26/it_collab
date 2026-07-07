@@ -1,0 +1,1 @@
+{"id": "REQ-014", "title": "Create-user payload validation", "checks": ["The validation error response MUST be a structured list, not a single string.", "Each error entry SHOULD name the offending field and a human-readable message.", "Missing required fields MUST be reported before any persistence call."]}

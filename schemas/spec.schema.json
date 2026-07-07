@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/spec.schema.json",
+  "title": "Requirement Specification",
+  "description": "Schema for a single requirement spec. Every requirement MUST declare measurable success criteria and a validation mechanism so downstream generation stays controlled and traceable.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "title",
+    "description",
+    "status",
+    "success_criteria",
+    "validation_mechanism"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Stable requirement identifier, threaded through code, tests and eval rubric.",
+      "pattern": "^REQ-[0-9]{3,}$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 120
+    },
+    "description": {
+      "type": "string",
+      "minLength": 10
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "approved", "implemented", "verified", "deprecated"]
+    },
+    "milestone": {
+      "type": "string",
+      "pattern": "^m[0-9]+$",
+      "description": "Milestone this requirement targets, e.g. 'm2'."
+    },
+    "success_criteria": {
+      "type": "array",
+      "description": "Measurable, testable definitions of done. At least one required.",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "statement"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^AC-[0-9]{1,}$",
+            "description": "Acceptance-criterion id, unique within the requirement."
+          },
+          "statement": {
+            "type": "string",
+            "minLength": 5,
+            "description": "Measurable criterion, e.g. 'Returns 400 for missing fields'."
+          },
+          "measure": {
+            "type": "string",
+            "description": "How the criterion is quantified (metric, threshold, expected value)."
+          }
+        }
+      }
+    },
+    "validation_mechanism": {
+      "type": "array",
+      "description": "How the success criteria are verified. At least one required.",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type", "ref"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["test", "check", "llm_judge", "manual"],
+            "description": "Kind of validation. 'manual' alone is discouraged for gating."
+          },
+          "ref": {
+            "type": "string",
+            "description": "Pointer to the validator: test path, check id, or eval rubric id."
+          },
+          "criteria_ids": {
+            "type": "array",
+            "description": "Which success_criteria ids this mechanism validates.",
+            "items": { "type": "string", "pattern": "^AC-[0-9]{1,}$" },
+            "minItems": 1
+          }
+        }
+      }
+    },
+    "downstream_artifacts": {
+      "type": "array",
+      "description": "Generated artifacts that trace back to this requirement.",
+      "items": {
+        "type": "string",
+        "description": "Repo-relative path, e.g. 'generated/module.ts'."
+      }
+    }
+  }
+}

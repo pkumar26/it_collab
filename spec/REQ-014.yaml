@@ -1,0 +1,29 @@
+id: REQ-014
+title: Validate request payload for the create-user endpoint
+description: >
+  The create-user endpoint must validate incoming payloads and reject malformed
+  requests before any persistence occurs, returning structured error details.
+status: implemented
+milestone: m2
+
+success_criteria:
+  - id: AC-1
+    statement: Endpoint returns HTTP 400 when required fields are missing
+    measure: status_code == 400 for payloads missing 'email' or 'name'
+  - id: AC-2
+    statement: Endpoint returns a structured validation error list
+    measure: response body contains an 'errors' array with field and message
+  - id: AC-3
+    statement: Valid payloads are accepted and return HTTP 201
+    measure: status_code == 201 for a well-formed payload
+
+validation_mechanism:
+  - type: test
+    ref: tests/req_014_validation.test.js
+    criteria_ids: [AC-1, AC-2, AC-3]
+  - type: llm_judge
+    ref: REQ-014
+    criteria_ids: [AC-2]
+
+downstream_artifacts:
+  - generated/create_user.js

@@ -1,0 +1,46 @@
+{
+  "overall": "pass",
+  "model": "offline-judge",
+  "samples": 3,
+  "offline_mode": true,
+  "generated_at": "2026-07-07T00:44:55.602516+00:00",
+  "requirements": [
+    {
+      "id": "REQ-014",
+      "spec": "spec\\REQ-014.yaml",
+      "artifacts": [
+        "generated\\create_user.js"
+      ],
+      "verdict": "pass",
+      "criteria": [
+        {
+          "criterion_id": "AC-1",
+          "statement": "Endpoint returns HTTP 400 when required fields are missing",
+          "verdict": "pass",
+          "justification": "Artifact references 6/7 key terms.",
+          "distribution": {
+            "pass": 3
+          }
+        },
+        {
+          "criterion_id": "AC-2",
+          "statement": "Endpoint returns a structured validation error list",
+          "verdict": "pass",
+          "justification": "Artifact references 6/6 key terms.",
+          "distribution": {
+            "pass": 3
+          }
+        },
+        {
+          "criterion_id": "AC-3",
+          "statement": "Valid payloads are accepted and return HTTP 201",
+          "verdict": "pass",
+          "justification": "Artifact references 3/5 key terms.",
+          "distribution": {
+            "pass": 3
+          }
+        }
+      ]
+    }
+  ]
+}

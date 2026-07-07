@@ -1,0 +1,169 @@
+# Quality Gates — deterministic checks first, then a BLOCKING LLM-as-judge gate.
+# Mirrors CONTRIBUTING.md sections 6-7. CI + branch protection are the
+# authoritative enforcement layer (local hooks are bypassable).
+#
+# Make ALL of these jobs "Required status checks" in branch protection for
+# `main` and `milestone/*`.
+
+name: quality-gates
+
+on:
+  pull_request:
+    branches: [main, "milestone/**"]
+  push:
+    branches: [main]
+  # Nightly regression + correctness sweep (see CONTRIBUTING.md §10).
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: quality-gates-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write # for posting the judge summary
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # 1. Deterministic gates — cheap, fast, reliable. Run FIRST.
+  # ---------------------------------------------------------------------------
+  deterministic:
+    name: Deterministic gates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install tooling
+        run: |
+          python -m pip install --upgrade pip
+          pip install pre-commit pyyaml jsonschema
+
+      - name: Lint / format / secrets (pre-commit)
+        run: pre-commit run --all-files --show-diff-on-failure
+
+      - name: Spec schema + traceability check
+        run: python scripts/check_traceability.py --root .
+
+      - name: Build & tests
+        run: |
+          # Replace with your stack's build/test commands.
+          if [ -f package.json ]; then npm ci && npm test --if-present; fi
+          if [ -f pyproject.toml ] || [ -f requirements.txt ]; then \
+            pip install -e . 2>/dev/null || true; \
+            pytest -q || (echo "tests failed" && exit 1); \
+          fi
+
+  # ---------------------------------------------------------------------------
+  # 2. LLM-as-a-judge gate — BLOCKING. Runs ONLY after deterministic passes.
+  #    Emits a JSON verdict artifact and fails the job on any 'fail' verdict.
+  # ---------------------------------------------------------------------------
+  llm-judge:
+    name: LLM judge (blocking)
+    needs: deterministic
+    runs-on: ubuntu-latest
+    env:
+      # Provide the key/endpoint via repo/org secrets.
+      LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+      LLM_ENDPOINT: ${{ secrets.LLM_ENDPOINT }}
+      # Pin the model version for reproducibility (recorded in the verdict).
+      LLM_MODEL: ${{ vars.LLM_JUDGE_MODEL || 'gpt-judge-2025-12' }}
+      # Number of samples for majority vote on high-stakes gates.
+      LLM_JUDGE_SAMPLES: ${{ vars.LLM_JUDGE_SAMPLES || '3' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install judge dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml jsonschema
+
+      - name: Guard — require judge credentials
+        run: |
+          if [ -z "$LLM_API_KEY" ] || [ -z "$LLM_ENDPOINT" ]; then
+            echo "::error::LLM judge credentials are not configured. This is a" \
+                 "blocking gate; set LLM_API_KEY and LLM_ENDPOINT secrets."
+            exit 1
+          fi
+
+      - name: Run LLM-as-judge evaluation
+        id: judge
+        run: |
+          # scripts/llm_judge.py should:
+          #  - load spec success_criteria + the artifact under review,
+          #  - run a rubric-based prompt at temperature 0, LLM_JUDGE_SAMPLES times,
+          #  - require majority agreement per criterion,
+          #  - write eval/results/verdict.json with per-criterion pass/fail +
+          #    cited justification + model version,
+          #  - exit non-zero if any criterion fails (or lands in needs-review
+          #    when human sign-off is not present).
+          python scripts/llm_judge.py \
+            --root . \
+            --samples "$LLM_JUDGE_SAMPLES" \
+            --model "$LLM_MODEL" \
+            --out eval/results/verdict.json
+
+      - name: Upload judge verdict artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: llm-judge-verdict
+          path: eval/results/verdict.json
+          if-no-files-found: warn
+
+      - name: Post verdict summary to PR
+        if: always() && github.event_name == 'pull_request'
+        run: |
+          {
+            echo "## LLM Judge Verdict"
+            echo '```json'
+            cat eval/results/verdict.json 2>/dev/null || echo '{ "error": "no verdict produced" }'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # ---------------------------------------------------------------------------
+  # 3. Milestone gate — full acceptance evaluation on tag creation.
+  #    The tag is only "blessed" if this passes; otherwise it is deleted.
+  # ---------------------------------------------------------------------------
+  milestone-acceptance:
+    name: Milestone acceptance
+    if: startsWith(github.ref, 'refs/tags/v') && contains(github.ref, 'milestone')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install tooling
+        run: pip install pyyaml jsonschema
+
+      - name: Full acceptance-criteria evaluation
+        id: accept
+        run: |
+          python scripts/check_traceability.py --root .
+          # Full ensemble judge across ALL requirements for the milestone.
+          python scripts/llm_judge.py --root . --all --samples 3 \
+            --out eval/results/milestone-verdict.json
+
+      - name: Abort milestone tag on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          echo "::error::Milestone acceptance failed for $TAG — deleting the tag."
+          git push --delete origin "$TAG" || true
+          exit 1
