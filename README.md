@@ -43,7 +43,8 @@ milestone acceptance evaluation on tag.
 | Path | What it is |
 |------|------------|
 | [PIPELINE_README.md](PIPELINE_README.md) | Full pipeline guide: how the pieces fit and how to run them |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | Git branching strategy, milestones, gates, rollback, anti-patterns |
+| [WORKFLOW.md](WORKFLOW.md) | Git branching strategy, milestones, gates, rollback, anti-patterns |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Thin contribution quick-start pointing to WORKFLOW.md |
 | [schemas/spec.schema.json](schemas/spec.schema.json) | JSON Schema requiring `success_criteria` + `validation_mechanism` per requirement |
 | [scripts/check_traceability.py](scripts/check_traceability.py) | Deterministic gate: schema + REQ → artifact → validator traceability |
 | [scripts/llm_judge.py](scripts/llm_judge.py) | LLM-as-a-judge gate (ensemble, rubric-based, offline fallback) |
@@ -156,5 +157,5 @@ status checks that cannot be bypassed.
 
 See [PIPELINE_README.md](PIPELINE_README.md) for CI/branch protection setup,
 offline vs. live judge modes, and customizing for your stack.
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the full branching, milestone, and
+See [WORKFLOW.md](WORKFLOW.md) for the full branching, milestone, and
 regeneration/rollback policy.

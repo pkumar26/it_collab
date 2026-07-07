@@ -2,7 +2,7 @@
 """LLM-as-a-judge evaluation gate.
 
 Implements the rubric-based, deterministic, ensemble judge described in
-CONTRIBUTING.md section 6.2:
+WORKFLOW.md section 6.2:
 
   * Loads each requirement spec (spec/**.yaml) and its declared success_criteria.
   * Loads matching rubric entries from eval/rubric.jsonl.

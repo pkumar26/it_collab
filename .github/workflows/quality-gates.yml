@@ -1,5 +1,5 @@
 # Quality Gates — deterministic checks first, then a BLOCKING LLM-as-judge gate.
-# Mirrors CONTRIBUTING.md sections 6-7. CI + branch protection are the
+# Mirrors WORKFLOW.md sections 6-7. CI + branch protection are the
 # authoritative enforcement layer (local hooks are bypassable).
 #
 # Make ALL of these jobs "Required status checks" in branch protection for
@@ -12,7 +12,7 @@ on:
     branches: [main, "milestone/**"]
   push:
     branches: [main]
-  # Nightly regression + correctness sweep (see CONTRIBUTING.md §10).
+  # Nightly regression + correctness sweep (see WORKFLOW.md §10).
   schedule:
     - cron: "0 3 * * *"
   workflow_dispatch:

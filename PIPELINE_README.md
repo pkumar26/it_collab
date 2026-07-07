@@ -9,7 +9,7 @@ traceable success criteria.
 > documentation lives in `PIPELINE_README.md`. When you move these files into your
 > repository, rename this to `README.md` (or merge it) as appropriate.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the full Git branching strategy, gate
+See [WORKFLOW.md](WORKFLOW.md) for the full Git branching strategy, gate
 architecture, and rollback/regeneration policy. This document covers **how the
 pieces fit together and how to run them**.
 
@@ -19,7 +19,7 @@ pieces fit together and how to run them**.
 
 | Path | What it is |
 |------|------------|
-| [CONTRIBUTING.md](CONTRIBUTING.md) | Branching strategy, milestones, gates, rollback, anti-patterns |
+| [WORKFLOW.md](WORKFLOW.md) | Branching strategy, milestones, gates, rollback, anti-patterns |
 | [.pre-commit-config.yaml](.pre-commit-config.yaml) | Local hooks: hygiene, secrets, lint/format, spec + traceability gates |
 | [schemas/spec.schema.json](schemas/spec.schema.json) | JSON Schema requiring `success_criteria` + `validation_mechanism` per requirement |
 | [scripts/check_traceability.py](scripts/check_traceability.py) | Deterministic gate: schema + REQ → artifact → validator traceability |
@@ -234,7 +234,7 @@ Example `eval/human-signoff.json`:
 - **Rollback** targets the last tag whose gates passed; use `git revert` on shared
   branches, never force-push.
 
-Full details in [CONTRIBUTING.md](CONTRIBUTING.md).
+Full details in [WORKFLOW.md](WORKFLOW.md).
 
 ---
 

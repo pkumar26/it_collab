@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Traceability & success-criteria gate.
 
-Enforces the rules in CONTRIBUTING.md sections 5-6:
+Enforces the rules in WORKFLOW.md sections 5-6:
 
   1. Every spec file validates against schemas/spec.schema.json.
   2. Every requirement (REQ-xxx) declares >= 1 success_criteria and

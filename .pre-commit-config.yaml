@@ -1,6 +1,6 @@
 # Pre-commit hooks — fast, local feedback before commits.
 # NOTE: Local hooks can be bypassed (--no-verify). CI + branch protection are the
-# authoritative enforcement layer (see CONTRIBUTING.md §7).
+# authoritative enforcement layer (see WORKFLOW.md §7).
 #
 # Install:  pipx install pre-commit  (or: pip install pre-commit)
 # Enable:   pre-commit install
